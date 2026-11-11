@@ -26,11 +26,15 @@ jobs:
           test -f css/main.css
           test -f js/metrika.js
           test -f js/cta.js
+          test -f favicon.ico
+          test -f favicon.svg
+          test -f apple-touch-icon.png
           test -f nginx/pdfexel.ru.conf
           test -f nginx/pdfexel.ru.http.conf
           grep -q '114193275' js/metrika.js
           grep -q 'data-variant="b"' index.html
           grep -q 'data-variant="a"' a/index.html
+          grep -q 'rel="icon"' index.html
           grep -q 'server_name pdfexel.ru' nginx/pdfexel.ru.conf
           grep -q 'cta_click' js/cta.js
           grep -q 'popup_shown' js/cta.js
