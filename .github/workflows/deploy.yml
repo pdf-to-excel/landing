@@ -82,10 +82,23 @@ jobs:
               mkdir -p '"${WEB_ROOT}"'
               if [ -f /etc/letsencrypt/live/pdfexel.ru/fullchain.pem ]; then
                 cp /tmp/pdfexel.ru.conf /etc/nginx/sites-available/pdfexel.ru
-                ln -sf /etc/nginx/sites-available/pdfexel.ru /etc/nginx/sites-enabled/pdfexel.ru
-                nginx -t
-                systemctl reload nginx
               else
-                echo "TLS cert missing for pdfexel.ru — files synced, nginx conf not activated"
+                cat >/etc/nginx/sites-available/pdfexel.ru <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name pdfexel.ru www.pdfexel.ru;
+    root /var/www/pdfexel.ru;
+    index index.html;
+    location ^~ /.well-known/acme-challenge/ { default_type "text/plain"; root /var/www/pdfexel.ru; }
+    location / { try_files \$uri \$uri/ \$uri.html =404; }
+    location = /a { try_files /a/index.html =404; }
+}
+EOF
+                echo "TLS missing — HTTP-only vhost active"
               fi
+              ln -sf /etc/nginx/sites-available/pdfexel.ru /etc/nginx/sites-enabled/pdfexel.ru
+              nginx -t
+              systemctl reload nginx
+              curl -fsS -H "Host: pdfexel.ru" http://127.0.0.1/ >/dev/null
             '
