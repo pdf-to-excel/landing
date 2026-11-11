@@ -81,14 +81,29 @@ jobs:
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "bash -s" <<'REMOTE'
           set -euo pipefail
-          if [ -f /etc/letsencrypt/live/pdfexel.ru/fullchain.pem ]; then
-            cp /tmp/pdfexel.ru.conf /etc/nginx/sites-available/pdfexel.ru
-          else
-            cp /tmp/pdfexel.ru.http.conf /etc/nginx/sites-available/pdfexel.ru
-            echo "TLS missing — HTTP-only vhost active"
-          fi
+          # Always keep HTTP ACME-capable first (needed before first cert).
+          cp /tmp/pdfexel.ru.http.conf /etc/nginx/sites-available/pdfexel.ru
           ln -sf /etc/nginx/sites-available/pdfexel.ru /etc/nginx/sites-enabled/pdfexel.ru
           nginx -t
           systemctl reload nginx
-          curl -fsS -H "Host: pdfexel.ru" http://127.0.0.1/ >/dev/null
+
+          if [ ! -f /etc/letsencrypt/live/pdfexel.ru/fullchain.pem ]; then
+            if dig +short A pdfexel.ru @a.dns.ripn.net | grep -q . || dig +short NS pdfexel.ru @a.dns.ripn.net | grep -q ns; then
+              certbot certonly --webroot -w /var/www/pdfexel.ru \
+                -d pdfexel.ru -d www.pdfexel.ru \
+                --non-interactive --agree-tos -m mail@antonbutov.com || true
+            else
+              echo "Parent .ru zone not delegated yet — skip certbot"
+            fi
+          fi
+
+          if [ -f /etc/letsencrypt/live/pdfexel.ru/fullchain.pem ]; then
+            cp /tmp/pdfexel.ru.conf /etc/nginx/sites-available/pdfexel.ru
+            nginx -t
+            systemctl reload nginx
+            curl -fsSI https://pdfexel.ru/ >/dev/null || curl -fsS -H "Host: pdfexel.ru" http://127.0.0.1/ >/dev/null
+          else
+            echo "TLS missing — HTTP-only vhost active"
+            curl -fsS -H "Host: pdfexel.ru" http://127.0.0.1/ >/dev/null
+          fi
           REMOTE
