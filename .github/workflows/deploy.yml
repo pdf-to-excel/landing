@@ -1,0 +1,91 @@
+name: Test and deploy pdfexel landing
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-pdfexel-landing-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEPLOY_HOST: 206.223.250.251
+  WEB_ROOT: /var/www/pdfexel.ru
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static contract
+        run: |
+          test -f index.html
+          test -f a/index.html
+          test -f css/main.css
+          test -f js/metrika.js
+          test -f js/cta.js
+          test -f nginx/pdfexel.ru.conf
+          grep -q '114193275' js/metrika.js
+          grep -q 'data-variant="b"' index.html
+          grep -q 'data-variant="a"' a/index.html
+          grep -q 'server_name pdfexel.ru' nginx/pdfexel.ru.conf
+          grep -q 'cta_click' js/cta.js
+          grep -q 'popup_shown' js/cta.js
+          node --check js/metrika.js
+          node --check js/cta.js
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: check
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify secrets
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          USER_NAME: ${{ secrets.DEPLOY_USER }}
+        run: |
+          test -n "$KEY" || { echo "Missing DEPLOY_SSH_PRIVATE_KEY"; exit 1; }
+          test -n "$USER_NAME" || { echo "Missing DEPLOY_USER"; exit 1; }
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_ed25519
+          chmod 600 ~/.ssh/deploy_ed25519
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+      - name: Sync static files
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/deploy_ed25519" -o IdentitiesOnly=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p ${WEB_ROOT}"
+          rsync -az --delete \
+            --exclude 'nginx' \
+            --exclude '.git' \
+            --exclude '.github' \
+            -e "ssh -i $HOME/.ssh/deploy_ed25519 -o IdentitiesOnly=yes" \
+            ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${WEB_ROOT}/"
+          scp -i "$HOME/.ssh/deploy_ed25519" -o IdentitiesOnly=yes \
+            nginx/pdfexel.ru.conf \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/pdfexel.ru.conf"
+          ssh -i "$HOME/.ssh/deploy_ed25519" -o IdentitiesOnly=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" '
+              set -euo pipefail
+              mkdir -p '"${WEB_ROOT}"'
+              if [ -f /etc/letsencrypt/live/pdfexel.ru/fullchain.pem ]; then
+                cp /tmp/pdfexel.ru.conf /etc/nginx/sites-available/pdfexel.ru
+                ln -sf /etc/nginx/sites-available/pdfexel.ru /etc/nginx/sites-enabled/pdfexel.ru
+                nginx -t
+                systemctl reload nginx
+              else
+                echo "TLS cert missing for pdfexel.ru — files synced, nginx conf not activated"
+              fi
+            '

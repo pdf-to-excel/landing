@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pdfexel — таблица из PDF без съезда столбцов</title>
+    <meta
+      name="description"
+      content="PDF и сканы в чистый Excel: столбцы на месте, числа без пробелов. Сервис pdfexel."
+    />
+    <link rel="canonical" href="https://pdfexel.ru/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/main.css" />
+    <noscript
+      ><div>
+        <img src="https://mc.yandex.ru/watch/114193275" style="position: absolute; left: -9999px" alt="" /></div
+    ></noscript>
+  </head>
+  <body data-variant="b">
+    <div class="wrap">
+      <header class="top">
+        <a class="brand" href="/">pdf<span>exel</span></a>
+        <span class="pill">тест спроса · RU</span>
+      </header>
+
+      <main class="hero">
+        <div>
+          <p class="pill" style="display: inline-block">из PDF в Excel</p>
+          <h1>Таблица из PDF без съезда столбцов</h1>
+          <p class="lead">
+            Обычные конвертеры ломают сетку: числа с пробелами, пустые строки, колонки «плывут». Мы собираем
+            чистый Excel — с проверкой структуры.
+          </p>
+          <div class="cta-row">
+            <button class="btn btn-primary" type="button" data-cta="hero">Получить чистый Excel</button>
+            <a class="btn btn-ghost" href="#how">Как это работает</a>
+          </div>
+        </div>
+
+        <div class="visual" aria-hidden="true">
+          <div class="compare">
+            <div class="sheet">
+              <h3>Обычный конвертер</h3>
+              <table class="fake-table broken">
+                <thead>
+                  <tr>
+                    <th>Товар</th>
+                    <th>Кол-во</th>
+                    <th>Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Кабель</td>
+                    <td>1 200</td>
+                    <td>48 000</td>
+                  </tr>
+                  <tr>
+                    <td>Разъём</td>
+                    <td>3 0</td>
+                    <td>1 5 00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sheet">
+              <h3>pdfexel</h3>
+              <table class="fake-table clean">
+                <thead>
+                  <tr>
+                    <th>Товар</th>
+                    <th>Кол-во</th>
+                    <th>Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Кабель</td>
+                    <td>1200</td>
+                    <td>48000</td>
+                  </tr>
+                  <tr>
+                    <td>Разъём</td>
+                    <td>30</td>
+                    <td>1500</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <section class="section" id="how">
+        <h2>Как решаем боль</h2>
+        <p>Не «ещё одна кнопка конвертер», а таблица, с которой можно сразу считать.</p>
+        <div class="steps">
+          <div class="step">
+            <strong>OCR сканов</strong>
+            <span>Распознаём текст и линии таблицы, даже если PDF — фото.</span>
+          </div>
+          <div class="step">
+            <strong>Структура ячеек</strong>
+            <span>Столбцы и строки держатся вместе — без съезда при экспорте.</span>
+          </div>
+          <div class="step">
+            <strong>Чистые числа</strong>
+            <span>Убираем пробелы в суммах и мусорные пустые строки.</span>
+          </div>
+        </div>
+        <div class="cta-row" style="margin-top: 1.5rem">
+          <button class="btn btn-primary" type="button" data-cta="how">Попробовать</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div>© pdfexel · <a href="/a">вариант A</a> для теста Директа</div>
+      </footer>
+    </div>
+
+    <div class="modal" id="dev-modal" hidden>
+      <div class="modal__backdrop" data-modal-close></div>
+      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="dev-title">
+        <h2 id="dev-title">Сервис в разработке</h2>
+        <p>Мы собираем спрос на точный PDF → Excel. Оставьте страницу в закладках — скоро откроем конвертацию.</p>
+        <button class="btn btn-primary modal__close" type="button" id="dev-modal-close">Понятно</button>
+      </div>
+    </div>
+
+    <script src="/js/metrika.js" defer></script>
+    <script src="/js/cta.js" defer></script>
+  </body>
+</html>
