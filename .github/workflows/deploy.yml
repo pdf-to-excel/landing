@@ -37,7 +37,8 @@ jobs:
           grep -q 'rel="icon"' index.html
           grep -q 'server_name pdfexel.ru' nginx/pdfexel.ru.conf
           grep -q 'cta_click' js/cta.js
-          grep -q 'popup_shown' js/cta.js
+          grep -q 'trackGoal("cta_click"' js/cta.js
+          ! grep -q 'popup_shown' js/cta.js
           node --check js/metrika.js
           node --check js/cta.js
 

@@ -8,8 +8,9 @@
     if (!modal) return;
     modal.hidden = false;
     document.body.style.overflow = "hidden";
+    // One goal per CTA — do not also fire popup_shown (double-counts Direct conversions).
     if (typeof window.trackGoal === "function") {
-      window.trackGoal(["cta_click", "popup_shown"], { variant, source: source || "cta" });
+      window.trackGoal("cta_click", { variant, source: source || "cta" });
     }
   };
 
