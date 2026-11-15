@@ -38,7 +38,15 @@ jobs:
           grep -q 'server_name pdfexel.ru' nginx/pdfexel.ru.conf
           grep -q 'cta_click' js/cta.js
           grep -q 'trackGoal("cta_click"' js/cta.js
+          grep -q "/api/convert" js/cta.js
+          grep -q 'id="file-input"' index.html
+          grep -q 'id="file-input"' a/index.html
+          grep -q 'location /api/' nginx/pdfexel.ru.conf
+          grep -q '80.87.196.33:8133' nginx/pdfexel.ru.conf
           ! grep -q 'popup_shown' js/cta.js
+          ! grep -q 'dev-modal' index.html
+          ! grep -q 'dev-modal' a/index.html
+          ! grep -q 'скоро будет' js/cta.js
           node --check js/metrika.js
           node --check js/cta.js
 

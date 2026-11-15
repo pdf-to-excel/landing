@@ -38,6 +38,8 @@
           <input id="file-input" type="file" accept="application/pdf,.pdf" />
         </div>
 
+        <p class="convert-status" id="convert-status" hidden role="status" aria-live="polite"></p>
+
         <div class="cta-row" style="justify-content: center">
           <button class="btn btn-primary" type="button" data-cta="convert">Конвертировать</button>
         </div>
@@ -46,15 +48,6 @@
       <footer class="footer">
         <div>© pdfexel</div>
       </footer>
-    </div>
-
-    <div class="modal" id="dev-modal" hidden>
-      <div class="modal__backdrop" data-modal-close></div>
-      <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="dev-title">
-        <h2 id="dev-title">Сервис в разработке</h2>
-        <p>Конвертация скоро заработает. Сейчас мы проверяем спрос — спасибо, что нажали.</p>
-        <button class="btn btn-primary modal__close" type="button" id="dev-modal-close">Понятно</button>
-      </div>
     </div>
 
     <script src="/js/metrika.js" defer></script>
