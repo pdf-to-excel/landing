@@ -14,9 +14,10 @@
     statusEl.hidden = !text;
   };
 
-  const trackCta = (source) => {
+  // Direct/Metrika conversion: only after successful file processing (not on button click).
+  const trackConvertOk = (source) => {
     if (typeof window.trackGoal === "function") {
-      window.trackGoal("cta_click", { variant, source: source || "cta" });
+      window.trackGoal("cta_click", { variant, source: source || "convert" });
     }
   };
 
@@ -59,7 +60,6 @@
     }
 
     busy = true;
-    trackCta(source || "convert");
     setStatus("Конвертируем… это может занять до минуты", "progress");
 
     const form = new FormData();
@@ -74,6 +74,7 @@
       const blob = await res.blob();
       const stem = file.name.replace(/\.pdf$/i, "") || "result";
       downloadBlob(blob, `${stem}.xlsx`);
+      trackConvertOk(source || "convert");
       setStatus("Готово — Excel скачан", "ok");
     } catch (_) {
       setStatus("Нет связи с сервером. Проверьте интернет и попробуйте снова.", "error");
