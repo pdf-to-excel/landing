@@ -48,7 +48,7 @@
 
   let busy = false;
 
-  const convertFile = async (file, source) => {
+  const convertFile = async (file, source, retried) => {
     if (!file || busy) return;
     if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
       setStatus("Нужен файл в формате PDF", "error");
@@ -59,6 +59,15 @@
       return;
     }
 
+    const auth = window.pdfexelAuth;
+    if (auth && typeof auth.ensureSession === "function") {
+      const ok = await auth.ensureSession();
+      if (!ok) {
+        setStatus("Нужен вход по email для конвертации", "error");
+        return;
+      }
+    }
+
     busy = true;
     setStatus("Конвертируем… это может занять до минуты", "progress");
 
@@ -66,7 +75,20 @@
     form.append("file", file, file.name);
 
     try {
-      const res = await fetch(CONVERT_URL, { method: "POST", body: form });
+      const res = await fetch(CONVERT_URL, {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
+      if (res.status === 401 && !retried && auth) {
+        busy = false;
+        const again = await auth.ensureSession();
+        if (!again) {
+          setStatus("Нужен вход по email для конвертации", "error");
+          return;
+        }
+        return convertFile(file, source, true);
+      }
       if (!res.ok) {
         setStatus(await errorMessage(res), "error");
         return;

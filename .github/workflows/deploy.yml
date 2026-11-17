@@ -47,7 +47,12 @@ jobs:
           ! grep -q 'dev-modal' index.html
           ! grep -q 'dev-modal' a/index.html
           ! grep -q 'скоро будет' js/cta.js
+          grep -q 'credentials: "include"' js/cta.js
+          grep -q '/api/auth/request-code' js/auth.js
+          grep -q 'js/auth.js' index.html
+          grep -q 'js/auth.js' a/index.html
           node --check js/metrika.js
+          node --check js/auth.js
           node --check js/cta.js
 
   deploy:
