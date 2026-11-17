@@ -78,6 +78,31 @@ a {
   color: var(--accent);
 }
 
+.session {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: min(60%, 22rem);
+}
+
+.session[hidden] {
+  display: none !important;
+}
+
+.session-email {
+  font-size: 0.85rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-logout {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
 .pill {
   font-size: 0.8rem;
   color: var(--muted);

@@ -2,10 +2,54 @@
   const REQUEST_URL = "/api/auth/request-code";
   const VERIFY_URL = "/api/auth/verify";
   const ME_URL = "/api/auth/me";
+  const LOGOUT_URL = "/api/auth/logout";
 
   let resolveLogin = null;
   let pendingFile = null;
   let pendingSource = null;
+  let currentEmail = null;
+
+  const sessionBar = () => document.getElementById("session-bar");
+  const sessionEmailEl = () => document.getElementById("session-email");
+
+  const renderSession = (email) => {
+    currentEmail = email || null;
+    const bar = sessionBar();
+    const emailEl = sessionEmailEl();
+    if (!bar || !emailEl) return;
+    if (email) {
+      emailEl.textContent = email;
+      bar.hidden = false;
+    } else {
+      emailEl.textContent = "";
+      bar.hidden = true;
+    }
+  };
+
+  const refreshSession = async () => {
+    try {
+      const res = await fetch(ME_URL, { credentials: "include" });
+      if (!res.ok) {
+        renderSession(null);
+        return null;
+      }
+      const data = await res.json();
+      renderSession(data.email || null);
+      return data.email || null;
+    } catch (_) {
+      renderSession(null);
+      return null;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch(LOGOUT_URL, { method: "POST", credentials: "include" });
+    } catch (_) {
+      /* still clear UI */
+    }
+    renderSession(null);
+  };
 
   const ensureModal = () => {
     let root = document.getElementById("auth-modal");
@@ -129,6 +173,8 @@
         setStatus("Неверный или просроченный код", "error");
         return;
       }
+      const data = await res.json().catch(() => ({}));
+      renderSession(data.email || email);
       closeModal(true);
     } catch (_) {
       setStatus("Нет связи с сервером", "error");
@@ -137,19 +183,30 @@
     }
   };
 
+  const logoutBtn = document.getElementById("session-logout");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      logout();
+    });
+  }
+
+  refreshSession();
+
   window.pdfexelAuth = {
     ensureSession: async () => {
-      try {
-        const res = await fetch(ME_URL, { credentials: "include" });
-        if (res.ok) return true;
-      } catch (_) {
-        /* fall through to modal */
-      }
+      const email = await refreshSession();
+      if (email) return true;
       return new Promise((resolve) => {
-        resolveLogin = resolve;
+        resolveLogin = async (ok) => {
+          if (ok) await refreshSession();
+          resolve(!!ok);
+        };
         openModal();
       });
     },
+    refreshSession,
+    logout,
+    getEmail: () => currentEmail,
     setPendingConvert: (file, source) => {
       pendingFile = file;
       pendingSource = source;
