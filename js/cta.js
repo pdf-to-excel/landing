@@ -42,11 +42,23 @@
       /* ignore */
     }
     if (res.status === 413) return "Файл слишком большой (макс. 25 МБ)";
+    if (res.status === 401) return "Нужен вход по email";
     if (res.status >= 500) return "Сервер временно недоступен. Попробуйте позже.";
     return "Не удалось конвертировать файл";
   };
 
   let busy = false;
+
+  const ensureAuth = async () => {
+    const auth = window.pdfexelAuth;
+    if (!auth || typeof auth.ensureSession !== "function") return true;
+    const ok = await auth.ensureSession();
+    if (!ok) {
+      setStatus("Нужен вход по email для конвертации", "error");
+      return false;
+    }
+    return true;
+  };
 
   const convertFile = async (file, source, retried) => {
     if (!file || busy) return;
@@ -59,14 +71,7 @@
       return;
     }
 
-    const auth = window.pdfexelAuth;
-    if (auth && typeof auth.ensureSession === "function") {
-      const ok = await auth.ensureSession();
-      if (!ok) {
-        setStatus("Нужен вход по email для конвертации", "error");
-        return;
-      }
-    }
+    if (!(await ensureAuth())) return;
 
     busy = true;
     setStatus("Конвертируем… это может занять до минуты", "progress");
@@ -80,13 +85,9 @@
         body: form,
         credentials: "include",
       });
-      if (res.status === 401 && !retried && auth) {
+      if (res.status === 401 && !retried) {
         busy = false;
-        const again = await auth.ensureSession();
-        if (!again) {
-          setStatus("Нужен вход по email для конвертации", "error");
-          return;
-        }
+        if (!(await ensureAuth())) return;
         return convertFile(file, source, true);
       }
       if (!res.ok) {
@@ -106,9 +107,14 @@
     }
   };
 
+  // MUST stay sync inside the click handler — browsers block fileInput.click() after await.
   const pickFile = (source) => {
-    if (!fileInput) return;
+    if (!fileInput) {
+      setStatus("Не найден выбор файла на странице", "error");
+      return;
+    }
     fileInput.dataset.source = source || "pick";
+    setStatus("Выберите PDF-файл…", "progress");
     fileInput.click();
   };
 
@@ -127,7 +133,10 @@
   if (fileInput) {
     fileInput.addEventListener("change", () => {
       const file = fileInput.files && fileInput.files[0];
-      if (!file) return;
+      if (!file) {
+        setStatus("Файл не выбран", "error");
+        return;
+      }
       convertFile(file, fileInput.dataset.source || "file");
     });
   }
