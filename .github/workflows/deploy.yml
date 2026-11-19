@@ -40,11 +40,16 @@ jobs:
           grep -q 'rel="icon"' index.html
           grep -q 'server_name pdfexel.ru' nginx/pdfexel.ru.conf
           grep -q 'cta_click' js/cta.js
-          grep -q 'trackGoal("cta_click"' js/cta.js
+          grep -q 'window.trackGoal' js/cta.js
           grep -q "/api/convert" js/cta.js
+          grep -q "/api/ocr-interest" js/cta.js
           grep -q "/result/" js/cta.js
+          grep -q 'scanned_pdf' js/cta.js
           grep -q 'id="file-input"' index.html
           grep -q 'id="file-input"' a/index.html
+          grep -q 'id="scan-modal"' index.html
+          grep -q 'id="scan-modal"' a/index.html
+          grep -q 'id="waitlist-modal"' index.html
           grep -q 'location /api/' nginx/pdfexel.ru.conf
           grep -q '80.87.196.33:8133' nginx/pdfexel.ru.conf
           ! grep -q 'popup_shown' js/cta.js

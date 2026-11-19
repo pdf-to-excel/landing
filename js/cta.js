@@ -10,7 +10,7 @@
   const scanModal = document.getElementById("scan-modal");
   const scanOfferText = document.getElementById("scan-offer-text");
   const scanCta = document.getElementById("scan-offer-cta");
-  const devModal = document.getElementById("dev-modal");
+  const waitlistModal = document.getElementById("waitlist-modal");
 
   let pendingScanFile = null;
   let busy = false;
@@ -49,14 +49,14 @@
     if (scanModal) scanModal.hidden = true;
   };
 
-  const showDevModal = () => {
-    if (!devModal) return;
-    devModal.hidden = false;
-    track("ocr_dev_popup_shown", { variant });
+  const showWaitlistModal = () => {
+    if (!waitlistModal) return;
+    waitlistModal.hidden = false;
+    track("ocr_waitlist_ack", { variant });
   };
 
-  const hideDevModal = () => {
-    if (devModal) devModal.hidden = true;
+  const hideWaitlistModal = () => {
+    if (waitlistModal) waitlistModal.hidden = true;
   };
 
   const parseDetail = async (res) => {
@@ -92,7 +92,7 @@
     }
     track("scan_offer_accepted", { variant, filename });
     setStatus("Заявка записана", "ok");
-    showDevModal();
+    showWaitlistModal();
   };
 
   const convertFile = async (file, source) => {
@@ -218,7 +218,7 @@
   document.querySelectorAll("[data-scan-close]").forEach((el) => {
     el.addEventListener("click", hideScanModal);
   });
-  document.querySelectorAll("[data-dev-close]").forEach((el) => {
-    el.addEventListener("click", hideDevModal);
+  document.querySelectorAll("[data-waitlist-close]").forEach((el) => {
+    el.addEventListener("click", hideWaitlistModal);
   });
 })();

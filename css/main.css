@@ -659,7 +659,8 @@ a {
   padding: 0.65rem 0.75rem;
 }
 
-.dev-modal {
+.dev-modal,
+.offer-modal {
   position: fixed;
   inset: 0;
   z-index: 90;
@@ -668,17 +669,20 @@ a {
   padding: 1rem;
 }
 
-.dev-modal[hidden] {
+.dev-modal[hidden],
+.offer-modal[hidden] {
   display: none !important;
 }
 
-.dev-modal__backdrop {
+.dev-modal__backdrop,
+.offer-modal__backdrop {
   position: absolute;
   inset: 0;
   background: rgba(6, 10, 8, 0.65);
 }
 
-.dev-modal__panel {
+.dev-modal__panel,
+.offer-modal__panel {
   position: relative;
   width: min(420px, 100%);
   background: var(--bg1);
@@ -690,18 +694,20 @@ a {
   box-shadow: var(--shadow);
 }
 
-.dev-modal__panel h2 {
+.dev-modal__panel h2,
+.offer-modal__panel h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.35rem;
 }
 
-.dev-modal__panel p {
+.dev-modal__panel p,
+.offer-modal__panel p {
   margin: 0;
   color: var(--muted);
 }
 
-.dev-modal__actions {
+.offer-modal__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;

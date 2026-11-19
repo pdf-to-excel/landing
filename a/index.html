@@ -52,26 +52,26 @@
       </footer>
     </div>
 
-    <div class="dev-modal" id="scan-modal" hidden>
-      <div class="dev-modal__backdrop" data-scan-close></div>
-      <div class="dev-modal__panel" role="dialog" aria-modal="true" aria-labelledby="scan-modal-title">
+    <div class="offer-modal" id="scan-modal" hidden>
+      <div class="offer-modal__backdrop" data-scan-close></div>
+      <div class="offer-modal__panel" role="dialog" aria-modal="true" aria-labelledby="scan-modal-title">
         <h2 id="scan-modal-title">Скан PDF</h2>
         <p id="scan-offer-text">
           Этот PDF похож на скан. Обычная конвертация не сработает — нужен OCR.
         </p>
-        <div class="dev-modal__actions">
+        <div class="offer-modal__actions">
           <button type="button" class="btn btn-primary" id="scan-offer-cta">Распознать за 99 ₽</button>
           <button type="button" class="btn btn-ghost" data-scan-close>Не сейчас</button>
         </div>
       </div>
     </div>
 
-    <div class="dev-modal" id="dev-modal" hidden>
-      <div class="dev-modal__backdrop" data-dev-close></div>
-      <div class="dev-modal__panel" role="dialog" aria-modal="true" aria-labelledby="dev-modal-title">
-        <h2 id="dev-modal-title">В разработке</h2>
+    <div class="offer-modal" id="waitlist-modal" hidden>
+      <div class="offer-modal__backdrop" data-waitlist-close></div>
+      <div class="offer-modal__panel" role="dialog" aria-modal="true" aria-labelledby="waitlist-modal-title">
+        <h2 id="waitlist-modal-title">В разработке</h2>
         <p>OCR для сканов ещё в разработке — мы записали ваш запрос и сообщим, когда заработает.</p>
-        <button type="button" class="btn btn-primary" data-dev-close>Понятно</button>
+        <button type="button" class="btn btn-primary" data-waitlist-close>Понятно</button>
       </div>
     </div>
 
