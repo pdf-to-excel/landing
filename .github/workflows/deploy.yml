@@ -23,9 +23,12 @@ jobs:
         run: |
           test -f index.html
           test -f a/index.html
+          test -f result/index.html
           test -f css/main.css
           test -f js/metrika.js
           test -f js/cta.js
+          test -f js/result.js
+          test -f js/result-store.js
           test -f favicon.ico
           test -f favicon.svg
           test -f apple-touch-icon.png
@@ -39,6 +42,7 @@ jobs:
           grep -q 'cta_click' js/cta.js
           grep -q 'trackGoal("cta_click"' js/cta.js
           grep -q "/api/convert" js/cta.js
+          grep -q "/result/" js/cta.js
           grep -q 'id="file-input"' index.html
           grep -q 'id="file-input"' a/index.html
           grep -q 'location /api/' nginx/pdfexel.ru.conf
@@ -47,13 +51,17 @@ jobs:
           ! grep -q 'dev-modal' index.html
           ! grep -q 'dev-modal' a/index.html
           ! grep -q 'скоро будет' js/cta.js
+          ! grep -q 'js/auth.js' index.html
+          ! grep -q 'js/auth.js' a/index.html
           grep -q 'credentials: "include"' js/cta.js
-          grep -q '/api/auth/request-code' js/auth.js
-          grep -q 'js/auth.js' index.html
-          grep -q 'js/auth.js' a/index.html
+          grep -q 'result_view' js/result.js
+          grep -q 'ai_prompt_submit' js/result.js
+          grep -q 'ai_dev_popup_shown' js/result.js
+          grep -q 'id="dev-modal"' result/index.html
           node --check js/metrika.js
-          node --check js/auth.js
           node --check js/cta.js
+          node --check js/result.js
+          node --check js/result-store.js
 
   deploy:
     runs-on: ubuntu-latest

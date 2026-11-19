@@ -14,22 +14,10 @@
     statusEl.hidden = !text;
   };
 
-  // Direct/Metrika conversion: only after successful file processing (not on button click).
   const trackConvertOk = (source) => {
     if (typeof window.trackGoal === "function") {
       window.trackGoal("cta_click", { variant, source: source || "convert" });
     }
-  };
-
-  const downloadBlob = (blob, filename) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename || "result.xlsx";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
   };
 
   const errorMessage = async (res) => {
@@ -42,25 +30,13 @@
       /* ignore */
     }
     if (res.status === 413) return "Файл слишком большой (макс. 25 МБ)";
-    if (res.status === 401) return "Нужен вход по email";
     if (res.status >= 500) return "Сервер временно недоступен. Попробуйте позже.";
     return "Не удалось конвертировать файл";
   };
 
   let busy = false;
 
-  const ensureAuth = async () => {
-    const auth = window.pdfexelAuth;
-    if (!auth || typeof auth.ensureSession !== "function") return true;
-    const ok = await auth.ensureSession();
-    if (!ok) {
-      setStatus("Нужен вход по email для конвертации", "error");
-      return false;
-    }
-    return true;
-  };
-
-  const convertFile = async (file, source, retried) => {
+  const convertFile = async (file, source) => {
     if (!file || busy) return;
     if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
       setStatus("Нужен файл в формате PDF", "error");
@@ -70,8 +46,6 @@
       setStatus("Файл слишком большой (макс. 25 МБ)", "error");
       return;
     }
-
-    if (!(await ensureAuth())) return;
 
     busy = true;
     setStatus("Конвертируем… это может занять до минуты", "progress");
@@ -85,20 +59,22 @@
         body: form,
         credentials: "include",
       });
-      if (res.status === 401 && !retried) {
-        busy = false;
-        if (!(await ensureAuth())) return;
-        return convertFile(file, source, true);
-      }
       if (!res.ok) {
         setStatus(await errorMessage(res), "error");
         return;
       }
-      const blob = await res.blob();
+      const buffer = await res.arrayBuffer();
       const stem = file.name.replace(/\.pdf$/i, "") || "result";
-      downloadBlob(blob, `${stem}.xlsx`);
+      const filename = `${stem}.xlsx`;
+      const store = window.pdfexelResultStore;
+      if (!store || typeof store.saveResult !== "function") {
+        setStatus("Не удалось сохранить результат для превью", "error");
+        return;
+      }
+      await store.saveResult({ filename, bytes: buffer });
       trackConvertOk(source || "convert");
-      setStatus("Готово — Excel скачан", "ok");
+      setStatus("Готово — открываем результат…", "ok");
+      location.assign("/result/");
     } catch (_) {
       setStatus("Нет связи с сервером. Проверьте интернет и попробуйте снова.", "error");
     } finally {

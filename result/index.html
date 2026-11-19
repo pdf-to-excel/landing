@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Результат — pdfexel</title>
+    <meta name="description" content="Превью Excel и правки с помощью ИИ (тест)." />
+    <link rel="canonical" href="https://pdfexel.ru/result/" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/main.css?v=20261119a" />
+    <noscript
+      ><div>
+        <img src="https://mc.yandex.ru/watch/114193275" style="position: absolute; left: -9999px" alt="" /></div
+    ></noscript>
+  </head>
+  <body data-variant="result">
+    <div class="wrap result-wrap">
+      <header class="top">
+        <a class="brand" href="/">pdf<span>exel</span></a>
+        <a class="btn btn-ghost" href="/">Новый PDF</a>
+      </header>
+
+      <main class="result-layout">
+        <section class="result-preview" aria-label="Превью Excel">
+          <div class="result-preview__head">
+            <h1 class="result-title">Ваш Excel</h1>
+            <button class="btn btn-primary" type="button" id="download-xlsx" hidden>Скачать Excel</button>
+          </div>
+          <p class="result-filename" id="result-filename" hidden></p>
+          <p class="convert-status" id="result-status" hidden role="status" aria-live="polite"></p>
+          <div class="sheet-preview" id="sheet-preview"></div>
+        </section>
+
+        <aside class="result-chat" aria-label="Правки с ИИ">
+          <h2 class="result-chat__title">Правки с ИИ</h2>
+          <p class="result-chat__lead">Напишите, что сделать с таблицей. Пока это тестовая фича.</p>
+          <div class="chat-chips" id="chat-chips">
+            <button type="button" class="chip" data-prompt="выдели в отдельную таблицу список">
+              выдели в отдельную таблицу список
+            </button>
+            <button type="button" class="chip" data-prompt="убери пустые строки">убери пустые строки</button>
+            <button type="button" class="chip" data-prompt="оставь только суммы">оставь только суммы</button>
+          </div>
+          <div class="chat-log" id="chat-log" aria-live="polite"></div>
+          <form class="chat-form" id="chat-form">
+            <label class="visually-hidden" for="chat-input">Что сделать</label>
+            <textarea
+              id="chat-input"
+              rows="2"
+              maxlength="500"
+              placeholder="Например: выдели в отдельную таблицу список"
+              required
+            ></textarea>
+            <button class="btn btn-primary" type="submit">Отправить</button>
+          </form>
+        </aside>
+      </main>
+    </div>
+
+    <div class="dev-modal" id="dev-modal" hidden>
+      <div class="dev-modal__backdrop" data-dev-close></div>
+      <div class="dev-modal__panel" role="dialog" aria-modal="true" aria-labelledby="dev-modal-title">
+        <h2 id="dev-modal-title">В разработке</h2>
+        <p>Функция в разработке — мы записали ваш запрос.</p>
+        <button type="button" class="btn btn-primary" data-dev-close>Понятно</button>
+      </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
+    <script src="/js/metrika.js?v=20261119a" defer></script>
+    <script src="/js/result-store.js?v=20261119a" defer></script>
+    <script src="/js/result.js?v=20261119a" defer></script>
+  </body>
+</html>
