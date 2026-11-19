@@ -701,6 +701,13 @@ a {
   color: var(--muted);
 }
 
+.dev-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
 @media (max-width: 860px) {
   .result-layout {
     grid-template-columns: 1fr;

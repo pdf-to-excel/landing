@@ -1,11 +1,23 @@
 (() => {
   const variant = document.body.getAttribute("data-variant") || "b";
   const CONVERT_URL = "/api/convert";
+  const OCR_INTEREST_URL = "/api/ocr-interest";
   const MAX_BYTES = 25 * 1024 * 1024;
 
   const statusEl = document.getElementById("convert-status");
   const fileInput = document.getElementById("file-input");
   const dropzone = document.getElementById("dropzone");
+  const scanModal = document.getElementById("scan-modal");
+  const scanOfferText = document.getElementById("scan-offer-text");
+  const scanCta = document.getElementById("scan-offer-cta");
+  const devModal = document.getElementById("dev-modal");
+
+  let pendingScanFile = null;
+  let busy = false;
+
+  const track = (names, params) => {
+    if (typeof window.trackGoal === "function") window.trackGoal(names, params);
+  };
 
   const setStatus = (text, kind) => {
     if (!statusEl) return;
@@ -15,26 +27,73 @@
   };
 
   const trackConvertOk = (source) => {
-    if (typeof window.trackGoal === "function") {
-      window.trackGoal("cta_click", { variant, source: source || "convert" });
+    track("cta_click", { variant, source: source || "convert" });
+  };
+
+  const showScanModal = (offer, filename) => {
+    if (!scanModal) return;
+    const price = offer && offer.price_rub != null ? offer.price_rub : 99;
+    const cta = (offer && offer.cta) || `Распознать за ${price} ₽`;
+    if (scanOfferText) {
+      scanOfferText.textContent =
+        (offer && offer.title) ||
+        "Этот PDF похож на скан (фото страницы). Обычная конвертация таблицы не сработает — нужен OCR.";
+    }
+    if (scanCta) scanCta.textContent = cta;
+    pendingScanFile = filename || null;
+    scanModal.hidden = false;
+    track("scan_offer_shown", { variant, filename: filename || "" });
+  };
+
+  const hideScanModal = () => {
+    if (scanModal) scanModal.hidden = true;
+  };
+
+  const showDevModal = () => {
+    if (!devModal) return;
+    devModal.hidden = false;
+    track("ocr_dev_popup_shown", { variant });
+  };
+
+  const hideDevModal = () => {
+    if (devModal) devModal.hidden = true;
+  };
+
+  const parseDetail = async (res) => {
+    try {
+      const data = await res.json();
+      return data && data.detail != null ? data.detail : null;
+    } catch (_) {
+      return null;
     }
   };
 
-  const errorMessage = async (res) => {
-    try {
-      const data = await res.json();
-      if (data && data.detail) {
-        return typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
-      }
-    } catch (_) {
-      /* ignore */
-    }
-    if (res.status === 413) return "Файл слишком большой (макс. 25 МБ)";
-    if (res.status >= 500) return "Сервер временно недоступен. Попробуйте позже.";
+  const errorMessage = (detail, status) => {
+    if (typeof detail === "string" && detail) return detail;
+    if (detail && typeof detail === "object" && detail.message) return detail.message;
+    if (status === 413) return "Файл слишком большой (макс. 25 МБ)";
+    if (status >= 500) return "Сервер временно недоступен. Попробуйте позже.";
     return "Не удалось конвертировать файл";
   };
 
-  let busy = false;
+  const acceptScanOffer = async () => {
+    const filename = pendingScanFile || "";
+    hideScanModal();
+    setStatus("Записываем заявку…", "progress");
+    try {
+      await fetch(OCR_INTEREST_URL, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename, source: "scan_offer" }),
+      });
+    } catch (_) {
+      /* still show popup — interest is best-effort */
+    }
+    track("scan_offer_accepted", { variant, filename });
+    setStatus("Заявка записана", "ok");
+    showDevModal();
+  };
 
   const convertFile = async (file, source) => {
     if (!file || busy) return;
@@ -60,7 +119,13 @@
         credentials: "include",
       });
       if (!res.ok) {
-        setStatus(await errorMessage(res), "error");
+        const detail = await parseDetail(res);
+        if (detail && typeof detail === "object" && detail.code === "scanned_pdf") {
+          setStatus(detail.message || "PDF выглядит как скан", "error");
+          showScanModal(detail.offer, file.name);
+          return;
+        }
+        setStatus(errorMessage(detail, res.status), "error");
         return;
       }
       const buffer = await res.arrayBuffer();
@@ -144,4 +209,16 @@
       if (file) convertFile(file, "drop");
     });
   }
+
+  if (scanCta) {
+    scanCta.addEventListener("click", () => {
+      acceptScanOffer();
+    });
+  }
+  document.querySelectorAll("[data-scan-close]").forEach((el) => {
+    el.addEventListener("click", hideScanModal);
+  });
+  document.querySelectorAll("[data-dev-close]").forEach((el) => {
+    el.addEventListener("click", hideDevModal);
+  });
 })();
