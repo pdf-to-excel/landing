@@ -49,7 +49,10 @@ jobs:
           grep -q 'id="file-input"' a/index.html
           grep -q 'id="scan-modal"' index.html
           grep -q 'id="scan-modal"' a/index.html
-          grep -q 'id="waitlist-modal"' index.html
+          grep -q 'id="pay-error-modal"' index.html
+          grep -q 'id="pay-error-modal"' a/index.html
+          grep -q 'ocr_pay_click' js/cta.js
+          grep -q 'Оплатить 299' index.html
           grep -q 'location /api/' nginx/pdfexel.ru.conf
           grep -q '80.87.196.33:8133' nginx/pdfexel.ru.conf
           ! grep -q 'popup_shown' js/cta.js
