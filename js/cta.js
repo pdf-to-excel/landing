@@ -3,6 +3,7 @@
   const CONVERT_URL = "/api/convert";
   const OCR_INTEREST_URL = "/api/ocr-interest";
   const MAX_BYTES = 25 * 1024 * 1024;
+  const DEFAULT_PRICE = 299;
 
   const statusEl = document.getElementById("convert-status");
   const fileInput = document.getElementById("file-input");
@@ -10,9 +11,10 @@
   const scanModal = document.getElementById("scan-modal");
   const scanOfferText = document.getElementById("scan-offer-text");
   const scanCta = document.getElementById("scan-offer-cta");
-  const waitlistModal = document.getElementById("waitlist-modal");
+  const payErrorModal = document.getElementById("pay-error-modal");
 
   let pendingScanFile = null;
+  let pendingOffer = null;
   let busy = false;
 
   const track = (names, params) => {
@@ -32,31 +34,34 @@
 
   const showScanModal = (offer, filename) => {
     if (!scanModal) return;
-    const price = offer && offer.price_rub != null ? offer.price_rub : 99;
-    const cta = (offer && offer.cta) || `Распознать за ${price} ₽`;
+    const price = offer && offer.price_rub != null ? offer.price_rub : DEFAULT_PRICE;
+    const period = (offer && offer.period) || "month";
+    const cta =
+      (offer && offer.cta) ||
+      (period === "month" ? `Оплатить ${price} ₽/мес` : `Оплатить ${price} ₽`);
     if (scanOfferText) {
       scanOfferText.textContent =
         (offer && offer.title) ||
-        "Этот PDF похож на скан (фото страницы). Обычная конвертация таблицы не сработает — нужен OCR.";
+        "Этот PDF похож на скан (фото страницы). Обычная конвертация таблицы не сработает — нужен OCR. Подписка открывает OCR на месяц.";
     }
     if (scanCta) scanCta.textContent = cta;
     pendingScanFile = filename || null;
+    pendingOffer = offer || { price_rub: price, period, cta };
     scanModal.hidden = false;
-    track("scan_offer_shown", { variant, filename: filename || "" });
+    track("scan_offer_shown", { variant, filename: filename || "", price_rub: price });
   };
 
   const hideScanModal = () => {
     if (scanModal) scanModal.hidden = true;
   };
 
-  const showWaitlistModal = () => {
-    if (!waitlistModal) return;
-    waitlistModal.hidden = false;
-    track("ocr_waitlist_ack", { variant });
+  const showPayErrorModal = () => {
+    if (!payErrorModal) return;
+    payErrorModal.hidden = false;
   };
 
-  const hideWaitlistModal = () => {
-    if (waitlistModal) waitlistModal.hidden = true;
+  const hidePayErrorModal = () => {
+    if (payErrorModal) payErrorModal.hidden = true;
   };
 
   const parseDetail = async (res) => {
@@ -78,21 +83,33 @@
 
   const acceptScanOffer = async () => {
     const filename = pendingScanFile || "";
+    const price = pendingOffer && pendingOffer.price_rub != null ? pendingOffer.price_rub : DEFAULT_PRICE;
     hideScanModal();
-    setStatus("Записываем заявку…", "progress");
+    setStatus("Подключаем оплату…", "progress");
+    track("ocr_pay_click", {
+      variant,
+      filename,
+      price_rub: price,
+      offer: "subscription_299",
+    });
     try {
       await fetch(OCR_INTEREST_URL, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename, source: "scan_offer" }),
+        body: JSON.stringify({
+          filename,
+          source: "scan_offer_pay",
+          offer: "subscription_299",
+          price_rub: price,
+        }),
       });
     } catch (_) {
-      /* still show popup — interest is best-effort */
+      /* still show pay error — interest is best-effort */
     }
-    track("scan_offer_accepted", { variant, filename });
-    setStatus("Заявка записана", "ok");
-    showWaitlistModal();
+    track("scan_offer_accepted", { variant, filename, price_rub: price });
+    setStatus("Не удалось открыть оплату", "error");
+    showPayErrorModal();
   };
 
   const convertFile = async (file, source) => {
@@ -218,7 +235,7 @@
   document.querySelectorAll("[data-scan-close]").forEach((el) => {
     el.addEventListener("click", hideScanModal);
   });
-  document.querySelectorAll("[data-waitlist-close]").forEach((el) => {
-    el.addEventListener("click", hideWaitlistModal);
+  document.querySelectorAll("[data-pay-error-close]").forEach((el) => {
+    el.addEventListener("click", hidePayErrorModal);
   });
 })();
