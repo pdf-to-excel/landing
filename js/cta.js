@@ -39,6 +39,12 @@
     const cta =
       (offer && offer.cta) ||
       (period === "month" ? `Оплатить ${price} ₽/мес` : `Оплатить ${price} ₽`);
+    const headingEl = document.getElementById("scan-modal-title");
+    if (headingEl) {
+      headingEl.textContent =
+        (offer && offer.heading) ||
+        (offer && offer.code === "no_tables" ? "Сложная таблица" : "Скан PDF");
+    }
     if (scanOfferText) {
       scanOfferText.textContent =
         (offer && offer.title) ||
@@ -124,7 +130,7 @@
     }
 
     busy = true;
-    setStatus("Конвертируем… это может занять до минуты", "progress");
+    setStatus("Конвертируем… большие PDF могут занять до 3–4 минут", "progress");
 
     const form = new FormData();
     form.append("file", file, file.name);
@@ -137,9 +143,23 @@
       });
       if (!res.ok) {
         const detail = await parseDetail(res);
-        if (detail && typeof detail === "object" && detail.code === "scanned_pdf") {
-          setStatus(detail.message || "PDF выглядит как скан", "error");
-          showScanModal(detail.offer, file.name);
+        if (
+          detail &&
+          typeof detail === "object" &&
+          detail.offer &&
+          (detail.code === "scanned_pdf" || detail.code === "no_tables")
+        ) {
+          setStatus(
+            detail.message ||
+              (detail.code === "no_tables"
+                ? "Таблицу не удалось разобрать"
+                : "PDF выглядит как скан"),
+            "error"
+          );
+          showScanModal(
+            Object.assign({}, detail.offer, { code: detail.code }),
+            file.name
+          );
           return;
         }
         setStatus(errorMessage(detail, res.status), "error");
